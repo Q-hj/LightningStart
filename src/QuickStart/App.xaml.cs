@@ -140,12 +140,15 @@ public partial class App : Application
     {
         if (ViewModel.Behavior.Trigger != "Hover")
             return;
+        if (_flyout is { IsVisible: true })
+            return;
+        if (_hoverTimer is { IsEnabled: true })
+            return;
 
         NativeMethods.GetCursorPos(out _hoverAnchor);
 
         _hoverTimer ??= CreateHoverTimer();
         _hoverTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(0, ViewModel.Behavior.HoverDelayMs));
-        _hoverTimer.Stop();
         _hoverTimer.Start();
     }
 

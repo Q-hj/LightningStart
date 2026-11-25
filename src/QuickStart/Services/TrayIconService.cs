@@ -112,11 +112,13 @@ internal sealed class TrayIconService : IDisposable
                     break;
 
                 case NativeMethods.NIN_POPUPOPEN:
+                case NativeMethods.WM_MOUSEMOVE:
                     HoverOpen?.Invoke();
                     handled = true;
                     break;
 
                 case NativeMethods.NIN_POPUPCLOSE:
+                case NativeMethods.WM_MOUSELEAVE:
                     HoverClose?.Invoke();
                     handled = true;
                     break;

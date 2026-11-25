@@ -63,8 +63,9 @@ dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-con
 3. 添加程序：打开配置窗口后点击“添加程序”，或直接把文件拖进窗口。
 4. 选中条目后可在右侧修改名称、参数、工作目录、图标等，修改会自动保存。
 5. 托盘图标可能被 Windows 11 收进“隐藏的图标”溢出区。若看不到，请到 **设置 → 个性化 → 任务栏 → 其他系统托盘图标** 中打开 QuickStart。
-6. 默认悬浮打开面板；也可以在“外观与行为”中切换为单击打开。
-7. 退出程序：托盘右键菜单 →“退出 QuickStart”，或设置页底部的“退出 QuickStart”。关闭主窗口只会隐藏到托盘。
+6. 部分第三方/侧边任务栏只发送传统鼠标悬浮消息，程序已做兼容；若悬浮仍不生效，可改用单击打开或将该图标固定到任务栏。
+7. 默认悬浮打开面板；也可以在“外观与行为”中切换为单击打开。
+8. 退出程序：托盘右键菜单 →“退出 QuickStart”，或设置页底部的“退出 QuickStart”。关闭主窗口只会隐藏到托盘。
 
 ## 配置文件
 
@@ -77,7 +78,7 @@ dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-con
 | 模块 | 方案 |
 | --- | --- |
 | UI | WPF / .NET 10（`net10.0-windows`，PerMonitorV2 DPI） |
-| 托盘图标 | `Shell_NotifyIcon` + `NOTIFYICON_VERSION_4`，处理 `NIN_POPUPOPEN` / `NIN_POPUPCLOSE` / `NIN_SELECT` |
+| 托盘图标 | `Shell_NotifyIcon` + `NOTIFYICON_VERSION_4`，处理 `NIN_POPUPOPEN` / `NIN_POPUPCLOSE` / `NIN_SELECT`，并兼容传统 `WM_MOUSEMOVE` / `WM_MOUSELEAVE` 悬浮通知 |
 | 悬浮面板 | 无边框 + 透明分层窗口 + `WS_EX_NOACTIVATE` / `WS_EX_TOOLWINDOW`，不抢焦点 |
 | 面板定位 | `GetMonitorInfo` + `GetDpiForMonitor`，按物理像素 `SetWindowPos` 贴边 |
 | 自动隐藏 | 120ms 轮询光标位置，移出面板/托盘热区 350ms 后隐藏 |

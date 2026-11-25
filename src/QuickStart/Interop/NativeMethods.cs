@@ -6,8 +6,10 @@ internal static class NativeMethods
 {
     public const int WM_NULL = 0x0000;
     public const int WM_CONTEXTMENU = 0x007B;
+    public const int WM_MOUSEMOVE = 0x0200;
     public const int WM_LBUTTONUP = 0x0202;
     public const int WM_RBUTTONUP = 0x0205;
+    public const int WM_MOUSELEAVE = 0x02A3;
     public const int WM_APP = 0x8000;
 
     public const int GWL_EXSTYLE = -20;
