@@ -7,6 +7,7 @@
 
 ## 功能
 
+- 主窗口采用左侧导航，分为“应用列表”和“系统设置”两个页面
 - 拖入 `exe / lnk / 文件夹 / url` 文件即可添加，支持多选
 - 程序名称、启动参数、工作目录、自定义图标、管理员身份运行
 - 列表排序（上移 / 下移）与删除
@@ -62,10 +63,11 @@ dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-con
 2. 首次启动会创建 4 个示例条目：文件资源管理器、记事本、PowerShell、Windows 终端。
 3. 添加程序：打开配置窗口后点击“添加程序”，或直接把文件拖进窗口。
 4. 选中条目后可在右侧修改名称、参数、工作目录、图标等，修改会自动保存。
-5. 托盘图标可能被 Windows 11 收进“隐藏的图标”溢出区。若看不到，请到 **设置 → 个性化 → 任务栏 → 其他系统托盘图标** 中打开 QuickStart。
-6. 部分第三方/侧边任务栏只发送传统鼠标悬浮消息，程序已做兼容；若悬浮仍不生效，可改用单击打开或将该图标固定到任务栏。
-7. 默认悬浮打开面板；也可以在“外观与行为”中切换为单击打开。
-8. 退出程序：托盘右键菜单 →“退出 QuickStart”，或设置页底部的“退出 QuickStart”。关闭主窗口只会隐藏到托盘。
+5. 系统设置页可调整面板图标大小、列数、触发方式、开机自启，并可打开配置目录或退出程序。
+6. 托盘图标可能被 Windows 11 收进“隐藏的图标”溢出区。若看不到，请到 **设置 → 个性化 → 任务栏 → 其他系统托盘图标** 中打开 QuickStart。
+7. 部分第三方/侧边任务栏只发送传统鼠标悬浮消息，程序已做兼容；若悬浮仍不生效，可改用单击打开或将该图标固定到任务栏。
+8. 默认悬浮打开面板；也可以在“系统设置 → 行为”中切换为单击打开。
+9. 退出程序：托盘右键菜单 →“退出 QuickStart”，或系统设置页底部的“退出 QuickStart”。关闭主窗口只会隐藏到托盘。
 
 ## 配置文件
 
@@ -104,7 +106,7 @@ dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-con
 QuickStart.sln
 src/QuickStart/
   App.xaml / App.xaml.cs          应用入口、单实例、托盘与面板协调
-  Views/MainWindow.*              配置窗口
+  Views/MainWindow.*              主窗口（应用列表 + 系统设置）
   Views/FlyoutWindow.*            托盘悬浮面板
   ViewModels/MainViewModel.cs     列表、编辑、保存逻辑
   Services/TrayIconService.cs     Shell_NotifyIcon 封装、右键菜单

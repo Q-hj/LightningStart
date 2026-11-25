@@ -20,6 +20,16 @@ public partial class MainWindow : Window
         SyncBehaviorRadios();
     }
 
+    private void Nav_Checked(object sender, RoutedEventArgs e)
+    {
+        if (AppListPage is null || SettingsPage is null)
+            return;
+
+        var appsSelected = ReferenceEquals(sender, NavApps);
+        AppListPage.Visibility = appsSelected ? Visibility.Visible : Visibility.Collapsed;
+        SettingsPage.Visibility = appsSelected ? Visibility.Collapsed : Visibility.Visible;
+    }
+
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
         if (App.IsShuttingDown)
