@@ -33,14 +33,15 @@ public partial class App : Application
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-        var startInTray = e.Args.Any(arg => arg.Equals("--tray", StringComparison.OrdinalIgnoreCase));
         var openSettings = e.Args.Any(arg => arg.Equals("--settings", StringComparison.OrdinalIgnoreCase));
         var debugFlyout = e.Args.Any(arg => arg.Equals("--flyout", StringComparison.OrdinalIgnoreCase));
 
         _mutex = new Mutex(initiallyOwned: true, MutexName, out var isNewInstance);
         if (!isNewInstance)
         {
-            if (!startInTray)
+            // Only an explicit --settings request wakes the running instance.
+            // A plain launch must never pop up the main window.
+            if (openSettings)
                 SignalExistingInstance();
 
             Shutdown();
