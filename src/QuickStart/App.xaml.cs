@@ -60,7 +60,7 @@ public partial class App : Application
         ViewModel = new MainViewModel();
 
         _flyout = new FlyoutWindow(ViewModel);
-        _flyout.SettingsRequested += (_, _) => ShowMainWindow();
+        _flyout.MainViewRequested += (_, _) => ShowMainWindow();
 
         try
         {

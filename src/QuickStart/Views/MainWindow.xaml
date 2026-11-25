@@ -378,6 +378,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="图标大小" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" VerticalAlignment="Center" />
                 <WrapPanel Grid.Column="1">
+                  <RadioButton x:Name="IconSize24" Content="24" Tag="24" GroupName="IconSize" Style="{StaticResource PillRadio}" Checked="IconSizeRadio_Checked" Margin="0,0,6,6" />
                   <RadioButton x:Name="IconSize32" Content="32" Tag="32" GroupName="IconSize" Style="{StaticResource PillRadio}" Checked="IconSizeRadio_Checked" Margin="0,0,6,6" />
                   <RadioButton x:Name="IconSize40" Content="40" Tag="40" GroupName="IconSize" Style="{StaticResource PillRadio}" Checked="IconSizeRadio_Checked" Margin="0,0,6,6" />
                   <RadioButton x:Name="IconSize48" Content="48" Tag="48" GroupName="IconSize" Style="{StaticResource PillRadio}" Checked="IconSizeRadio_Checked" Margin="0,0,6,6" />

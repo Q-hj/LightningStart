@@ -44,6 +44,7 @@ public partial class MainWindow : Window
         Cols5.IsChecked = behavior.Columns == 5;
         Cols6.IsChecked = behavior.Columns == 6;
 
+        IconSize24.IsChecked = behavior.IconSize == 24;
         IconSize32.IsChecked = behavior.IconSize == 32;
         IconSize40.IsChecked = behavior.IconSize == 40;
         IconSize48.IsChecked = behavior.IconSize == 48;

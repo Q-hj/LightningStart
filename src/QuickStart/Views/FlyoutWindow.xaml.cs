@@ -19,7 +19,7 @@ public partial class FlyoutWindow : Window
     private DateTime? _outsideSince;
     private bool _autoHide = true;
 
-    public event EventHandler? SettingsRequested;
+    public event EventHandler? MainViewRequested;
 
     public FlyoutWindow(MainViewModel viewModel)
     {
@@ -114,7 +114,7 @@ public partial class FlyoutWindow : Window
 
     private double CalculateWidth()
     {
-        var cell = Math.Max(64, _viewModel.Behavior.IconSize + 36);
+        var cell = Math.Max(72, _viewModel.Behavior.IconSize + 36);
         // Two 12px shadow margins plus two 12px card paddings.
         return _viewModel.Behavior.Columns * cell + 48;
     }
@@ -187,13 +187,44 @@ public partial class FlyoutWindow : Window
         var width = (int)Math.Ceiling(ActualWidth * scale);
         var height = (int)Math.Ceiling(ActualHeight * scale);
         var workArea = monitorInfo.rcWork;
+        var monitorArea = monitorInfo.rcMonitor;
 
         var x = anchor.X - width / 2;
         x = Math.Clamp(x, workArea.Left + 8, Math.Max(workArea.Left + 8, workArea.Right - width - 8));
 
-        var y = workArea.Bottom - height - 8;
-        if (y < workArea.Top + 8)
-            y = workArea.Top + 8;
+        // Detect a vertical taskbar (taskbar docked left/right). In that case the
+        // tray icon lives on the side edge, so a flyout above the pointer looks
+        // too high. Place it beside the taskbar and center it on the pointer.
+        var onLeftTaskbar = workArea.Left > monitorArea.Left && anchor.X <= workArea.Left;
+        var onRightTaskbar = workArea.Right < monitorArea.Right && anchor.X >= workArea.Right;
+
+        int y;
+        if (onLeftTaskbar || onRightTaskbar)
+        {
+            y = anchor.Y - height / 2;
+            y = Math.Clamp(
+                y,
+                workArea.Top + 8,
+                Math.Max(workArea.Top + 8, workArea.Bottom - height - 8));
+        }
+        else
+        {
+            // Keep the window fully above/below the pointer so its transparent
+            // shadow margin never covers the tray icon's click area.
+            const int gap = 12;
+            var above = anchor.Y - height - gap;
+            var below = anchor.Y + gap;
+
+            if (above >= workArea.Top + 8)
+                y = above;
+            else if (below + height <= workArea.Bottom - 8)
+                y = below;
+            else
+                y = Math.Clamp(
+                    above,
+                    workArea.Top + 8,
+                    Math.Max(workArea.Top + 8, workArea.Bottom - height - 8));
+        }
 
         NativeMethods.SetWindowPos(
             handle,
@@ -256,10 +287,10 @@ public partial class FlyoutWindow : Window
         }
     }
 
-    private void Settings_Click(object sender, RoutedEventArgs e)
+    private void OpenMainView_Click(object sender, RoutedEventArgs e)
     {
         HidePanel();
-        SettingsRequested?.Invoke(this, EventArgs.Empty);
+        MainViewRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void FlyoutWindow_Closing(object? sender, CancelEventArgs e)

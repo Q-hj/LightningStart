@@ -49,11 +49,11 @@
               <TextBlock Text="{Binding Entries.Count}" FontSize="10" Foreground="{StaticResource AccentBrush}" />
             </Border>
           </StackPanel>
-          <Button Content="设置"
+          <Button Content="打开主视图"
                   Style="{StaticResource FlyoutLinkButton}"
                   HorizontalAlignment="Right"
                   VerticalAlignment="Center"
-                  Click="Settings_Click" />
+                  Click="OpenMainView_Click" />
         </Grid>
 
         <Grid Grid.Row="1">
@@ -71,31 +71,13 @@
                   <Button Style="{StaticResource LaunchButton}"
                           Click="Entry_Click"
                           AutomationProperties.Name="{Binding Name}"
-                          AutomationProperties.HelpText="{Binding Target}"
-                          ToolTipService.InitialShowDelay="350"
-                          ToolTipService.ShowDuration="12000">
-                    <Button.ToolTip>
-                      <StackPanel MaxWidth="260">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding Target}"
-                                   FontSize="10.5"
-                                   Foreground="{StaticResource SecondaryTextBrush}"
-                                   TextWrapping="Wrap"
-                                   Margin="0,2,0,0" />
-                        <TextBlock Text="目标路径不存在"
-                                   FontSize="10.5"
-                                   Foreground="{StaticResource DangerBrush}"
-                                   Margin="0,2,0,0"
-                                   Visibility="{Binding IsTargetMissing, Converter={StaticResource BoolToVisibility}}" />
-                      </StackPanel>
-                    </Button.ToolTip>
-
+                          AutomationProperties.HelpText="{Binding Target}">
                     <StackPanel Margin="0,2" HorizontalAlignment="Center">
                       <Grid Width="{Binding DataContext.Behavior.IconSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                             Height="{Binding DataContext.Behavior.IconSize, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
-                        <Border Background="#F2F4F9" CornerRadius="10" />
+                        <Border Background="#F2F4F9" CornerRadius="8" />
                         <TextBlock Text="{Binding Name, Converter={StaticResource Initials}}"
-                                   FontSize="16"
+                                   FontSize="12"
                                    Foreground="#8A90A0"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
@@ -114,11 +96,15 @@
 
                       <TextBlock Text="{Binding Name}"
                                  HorizontalAlignment="Center"
-                                 FontSize="11"
+                                 FontSize="10.5"
                                  Foreground="#4B5163"
-                                 Margin="0,6,0,0"
-                                 MaxWidth="76"
-                                 TextTrimming="CharacterEllipsis"
+                                 Margin="0,5,0,0"
+                                 MaxWidth="60"
+                                 MaxHeight="28"
+                                 TextAlignment="Center"
+                                 TextWrapping="Wrap"
+                                 LineHeight="14"
+                                 LineStackingStrategy="BlockLineHeight"
                                  Visibility="{Binding DataContext.Behavior.ShowLabels, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
                   </Button>
@@ -148,7 +134,7 @@
                     Style="{StaticResource FlyoutLinkButton}"
                     HorizontalAlignment="Center"
                     Margin="0,4,0,0"
-                    Click="Settings_Click" />
+                    Click="OpenMainView_Click" />
           </StackPanel>
         </Grid>
 

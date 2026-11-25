@@ -7,7 +7,7 @@ public sealed class BehaviorConfig : ObservableObject
     private string _trigger = "Hover";
     private int _hoverDelayMs = 150;
     private int _columns = 4;
-    private int _iconSize = 48;
+    private int _iconSize = 24;
     private bool _showLabels = true;
     private bool _startWithWindows;
 
