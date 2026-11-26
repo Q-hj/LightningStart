@@ -5,6 +5,8 @@ obj/
 *.suo
 tmp/
 .tmp/
+.zcode/
 artifacts/
 publish/
+dist/
 TestResults/

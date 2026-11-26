@@ -11,8 +11,8 @@ namespace QuickStart;
 
 public partial class App : Application
 {
-    private const string MutexName = @"Local\QuickStart.SingleInstance";
-    private const string ShowEventName = @"Local\QuickStart.ShowSettings";
+    private const string MutexName = @"Local\LightningStart.SingleInstance";
+    private const string ShowEventName = @"Local\LightningStart.ShowSettings";
 
     private Mutex? _mutex;
     private EventWaitHandle? _showEvent;
@@ -30,6 +30,8 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        RegisterExceptionHandlers();
+
         base.OnStartup(e);
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
@@ -85,8 +87,60 @@ public partial class App : Application
         if (openSettings)
             ShowMainWindow();
 
+        if (_tray is not null && ViewModel.IsFirstRun && !openSettings)
+        {
+            Dispatcher.InvokeAsync(
+                () => _tray?.ShowBalloon(
+                    "闪电启动已在托盘运行",
+                    "右键托盘图标打开主视图；如果看不到图标，请在任务栏设置中显示。"),
+                DispatcherPriority.ApplicationIdle);
+        }
+
         if (debugFlyout)
             Dispatcher.InvokeAsync(() => _flyout?.ShowPanel(autoHide: false), DispatcherPriority.ApplicationIdle);
+    }
+
+    private void RegisterExceptionHandlers()
+    {
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        CrashLogger.Write("Dispatcher", e.Exception);
+
+        try
+        {
+            MessageBox.Show(
+                $"程序遇到未处理的错误，已记录到：\n{CrashLogger.LogFilePath}\n\n{e.Exception.Message}",
+                "闪电启动",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+        catch
+        {
+            // The log has already been written; don't mask the original failure.
+        }
+
+        e.Handled = true;
+        Shutdown(1);
+    }
+
+    private static void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+            CrashLogger.Write("AppDomain", exception);
+        else
+            CrashLogger.Write("AppDomain", new InvalidOperationException(
+                Convert.ToString(e.ExceptionObject) ?? "未知错误"));
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        CrashLogger.Write("TaskScheduler", e.Exception);
+        e.SetObserved();
     }
 
     private static void SignalExistingInstance()

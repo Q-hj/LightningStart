@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Windows.Data;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -27,6 +28,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public MainViewModel()
     {
         AppPaths.EnsureCreated();
+        AppPaths.MigrateLegacyConfigIfNeeded();
 
         _configStore = new ConfigStore();
         _iconLoader = new IconLoader();
@@ -102,6 +104,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public bool IsFirstRun { get; }
 
     public string ConfigPath => AppPaths.ConfigPath;
+
+    public string VersionText { get; } =
+        $"闪电启动 {Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.1.0"}";
 
     public RelayCommand AddCommand { get; }
     public RelayCommand RemoveCommand { get; }

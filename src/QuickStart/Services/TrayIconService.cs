@@ -29,7 +29,7 @@ internal sealed class TrayIconService : IDisposable
 
     public TrayIconService()
     {
-        var parameters = new HwndSourceParameters("QuickStart.TrayMessageWindow")
+        var parameters = new HwndSourceParameters("LightningStart.TrayMessageWindow")
         {
             WindowStyle = 0,
             ExtendedWindowStyle = unchecked((int)NativeMethods.WS_EX_TOOLWINDOW),
@@ -182,6 +182,25 @@ internal sealed class TrayIconService : IDisposable
             NativeMethods.DestroyMenu(menu);
         }
     }
+
+    public void ShowBalloon(string title, string message)
+    {
+        if (_disposed)
+            return;
+
+        // Modify a copy so the version-4 icon data used by AddIcon stays untouched.
+        var data = _iconData;
+        data.uFlags = NativeMethods.NIF_INFO;
+        data.szInfoTitle = Truncate(title, 63);
+        data.szInfo = Truncate(message, 255);
+        data.dwInfoFlags = NativeMethods.NIIF_INFO | NativeMethods.NIIF_NOSOUND;
+        data.uVersion = 10_000; // Legacy uTimeout field; ignored on Windows 10/11.
+
+        NativeMethods.Shell_NotifyIcon(NativeMethods.NIM_MODIFY, ref data);
+    }
+
+    private static string Truncate(string value, int maxLength) =>
+        value.Length <= maxLength ? value : value[..maxLength];
 
     public void Dispose()
     {

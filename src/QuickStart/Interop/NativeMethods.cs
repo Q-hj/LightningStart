@@ -33,7 +33,11 @@ internal static class NativeMethods
     public const uint NIF_MESSAGE = 0x00000001;
     public const uint NIF_ICON = 0x00000002;
     public const uint NIF_TIP = 0x00000004;
+    public const uint NIF_INFO = 0x00000010;
     public const uint NIF_SHOWTIP = 0x00000080;
+
+    public const uint NIIF_INFO = 0x00000001;
+    public const uint NIIF_NOSOUND = 0x00000010;
 
     public const uint NOTIFYICON_VERSION_4 = 4;
 

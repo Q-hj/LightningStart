@@ -5,28 +5,34 @@ namespace QuickStart.Services;
 internal static class AutoStart
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string ValueName = "QuickStart";
+    private const string ValueName = "LightningStart";
+    private const string LegacyValueName = "QuickStart";
 
     public static void Sync(bool enabled)
     {
         try
         {
+            using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath);
+            if (key is null)
+                return;
+
             if (enabled)
             {
                 var command = BuildCommand();
-                if (command is null)
-                    return;
-
-                using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath);
-                if (!string.Equals(key.GetValue(ValueName) as string, command, StringComparison.Ordinal))
+                if (command is not null &&
+                    !string.Equals(key.GetValue(ValueName) as string, command, StringComparison.Ordinal))
+                {
                     key.SetValue(ValueName, command, RegistryValueKind.String);
+                }
             }
-            else
+            else if (key.GetValue(ValueName) is not null)
             {
-                using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
-                if (key?.GetValue(ValueName) is not null)
-                    key.DeleteValue(ValueName, throwOnMissingValue: false);
+                key.DeleteValue(ValueName, throwOnMissingValue: false);
             }
+
+            // Remove the autostart entry written by the pre-rename executable.
+            if (key.GetValue(LegacyValueName) is not null)
+                key.DeleteValue(LegacyValueName, throwOnMissingValue: false);
         }
         catch
         {

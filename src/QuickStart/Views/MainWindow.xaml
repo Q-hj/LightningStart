@@ -176,7 +176,7 @@
 
         <StackPanel Grid.Row="3">
           <Border Height="1" Background="#EEF0F5" Margin="0,0,0,10" />
-          <TextBlock Text="闪电启动 0.1.0" FontSize="10.5" Foreground="{StaticResource MutedTextBrush}" Margin="4,0,0,0" />
+          <TextBlock Text="{Binding VersionText}" FontSize="10.5" Foreground="{StaticResource MutedTextBrush}" Margin="4,0,0,0" />
         </StackPanel>
       </Grid>
     </Border>
@@ -666,7 +666,7 @@
               <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
                   <TextBlock Text="其他" FontSize="15" FontWeight="SemiBold" />
-                  <TextBlock Text="配置保存在 %AppData%\QuickStart\config.json，所有修改即时生效。"
+                  <TextBlock Text="配置保存在 %AppData%\LightningStart\config.json，所有修改即时生效。"
                              FontSize="11.5"
                              Foreground="{StaticResource SecondaryTextBrush}"
                              TextWrapping="Wrap"
