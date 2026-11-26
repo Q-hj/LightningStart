@@ -63,6 +63,7 @@ public partial class App : Application
 
         _flyout = new FlyoutWindow(ViewModel);
         _flyout.MainViewRequested += (_, _) => ShowMainWindow();
+        _flyout.LaunchFailed += ShowLaunchFailure;
 
         try
         {
@@ -154,6 +155,20 @@ public partial class App : Application
         {
             // The other instance may be shutting down already.
         }
+    }
+
+    private void ShowLaunchFailure(string message)
+    {
+        if (IsShuttingDown)
+            return;
+
+        if (_tray is not null)
+        {
+            _tray.ShowBalloon("启动失败", message);
+            return;
+        }
+
+        MessageBox.Show(message, "闪电启动", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void ShowMainWindow()

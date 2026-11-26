@@ -35,6 +35,7 @@ public partial class FlyoutWindow : Window
     private const int CustomPositionTravelGraceMs = 2500;
 
     public event EventHandler? MainViewRequested;
+    public event Action<string>? LaunchFailed;
 
     public FlyoutWindow(MainViewModel viewModel)
     {
@@ -557,19 +558,18 @@ public partial class FlyoutWindow : Window
         }, DispatcherPriority.Loaded);
     }
 
-    private void Entry_Click(object sender, RoutedEventArgs e)
+    private async void Entry_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not AppEntry entry)
             return;
 
-        if (AppLauncher.TryLaunch(entry, out var error))
-        {
-            HidePanel();
-        }
-        else if (!string.IsNullOrEmpty(error))
-        {
-            ShowError("启动失败：" + error);
-        }
+        // Hide first: ShellExecuteEx can block on shortcut/DDE/shell work, and
+        // the topmost panel must not stay in front of the target window.
+        HidePanel();
+
+        var (success, error) = await AppLauncher.TryLaunchAsync(entry);
+        if (!success && !string.IsNullOrWhiteSpace(error))
+            LaunchFailed?.Invoke("启动失败：" + error);
     }
 
     private void OpenMainView_Click(object sender, RoutedEventArgs e)

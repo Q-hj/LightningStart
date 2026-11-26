@@ -10,6 +10,19 @@ internal static class AppLauncher
 {
     private static readonly ConcurrentDictionary<string, long> LastLaunchTicks = new();
 
+    /// <summary>
+    /// Starts the target off the UI thread. ShellExecuteEx can block on shortcut
+    /// resolution, DDE or the shell, so the flyout hides before awaiting this.
+    /// </summary>
+    public static Task<(bool Success, string? Error)> TryLaunchAsync(AppEntry entry)
+    {
+        return Task.Run(() =>
+        {
+            var success = TryLaunch(entry, out var error);
+            return (success, error);
+        });
+    }
+
     public static bool TryLaunch(AppEntry entry, out string? error)
     {
         error = null;
