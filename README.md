@@ -52,7 +52,7 @@ src/QuickStart/bin/Debug/net10.0-windows/LightningStart.exe
 
 ## 发布
 
-推荐使用发布脚本，自动完成自包含单文件打包、文档复制、去 PDB、压缩和 SHA256：
+推荐使用发布脚本，自动完成自包含单文件打包、去 PDB、压缩和 SHA256：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\publish.ps1
@@ -61,10 +61,14 @@ powershell -ExecutionPolicy Bypass -File tools\publish.ps1
 产物：
 
 ```text
-dist\LightningStart-<version>-win-x64\
+dist\LightningStart-<version>-win-x64\LightningStart.exe
 dist\LightningStart-<version>-win-x64.zip
 dist\LightningStart-<version>-win-x64.zip.sha256
 ```
+
+发布目录和 ZIP 内都只包含 `LightningStart.exe`。README 与 LICENSE 保留在仓库中；
+MIT 许可证要求随软件副本附带许可证声明，发布时请同时在 Release 页面附上
+[LICENSE](LICENSE)，或自行将 LICENSE 一并放入分发包。
 
 框架依赖发布（体积更小，目标机器需安装 .NET 10 Desktop Runtime）：
 
@@ -219,7 +223,7 @@ src/QuickStart/
   Interop/                        Win32 / Shell P/Invoke
   Styles/Theme.xaml               颜色、按钮、输入框、Tab 样式
 tools/generate-icon.ps1           重新生成 Assets/app.ico
-tools/publish.ps1                 发布自包含单文件 ZIP 与 SHA256
+tools/publish.ps1                 发布仅含 exe 的自包含单文件 ZIP 与 SHA256
 LICENSE                           MIT 许可证
 ```
 

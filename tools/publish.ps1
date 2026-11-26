@@ -11,8 +11,6 @@ $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot
 $project = Join-Path $root 'src\QuickStart\QuickStart.csproj'
-$readme = Join-Path $root 'README.md'
-$license = Join-Path $root 'LICENSE'
 $distRoot = Join-Path $root 'dist'
 
 if (-not (Test-Path $project)) {
@@ -63,9 +61,6 @@ if ($LASTEXITCODE -ne 0) {
 
 Get-ChildItem -LiteralPath $publishDir -Recurse -File -Filter '*.pdb' |
     Remove-Item -Force
-
-Copy-Item -LiteralPath $readme -Destination $publishDir -Force
-Copy-Item -LiteralPath $license -Destination $publishDir -Force
 
 $exePath = Join-Path $publishDir 'LightningStart.exe'
 if (-not (Test-Path $exePath)) {
