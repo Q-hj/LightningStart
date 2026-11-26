@@ -10,14 +10,14 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot
-$project = Join-Path $root 'src\QuickStart\QuickStart.csproj'
+$project = Join-Path $root 'src\LightningStart\LightningStart.csproj'
 $distRoot = Join-Path $root 'dist'
 
 if (-not (Test-Path $project)) {
     throw "Project file not found: $project"
 }
 
-$running = Get-Process -Name 'LightningStart', 'QuickStart' -ErrorAction SilentlyContinue
+$running = Get-Process -Name 'LightningStart' -ErrorAction SilentlyContinue
 if ($running) {
     $names = ($running | Select-Object -ExpandProperty ProcessName -Unique) -join ', '
     throw "Please close the running app before publishing: $names"

@@ -5,8 +5,7 @@
 - **配置窗口**：管理要出现在快捷菜单中的程序（添加、排序、编辑参数/图标）。
 - **托盘面板**：常驻系统托盘，悬浮或单击图标弹出小面板，单击程序图标即可启动。
 
-> 显示名：**闪电启动**；发布的可执行文件：`LightningStart.exe`。
-> 源码工程、命名空间与解决方案仍沿用 `QuickStart`，这只影响开发目录，不影响发布身份。
+> 显示名：**闪电启动**；源码工程、命名空间、解决方案和可执行文件均统一为 `LightningStart`。
 
 ## 功能
 
@@ -40,14 +39,14 @@
 ## 构建与运行
 
 ```bash
-dotnet build QuickStart.sln -c Debug
-dotnet run --project src/QuickStart
+dotnet build LightningStart.sln -c Debug
+dotnet run --project src/LightningStart
 ```
 
 也可以直接运行：
 
 ```text
-src/QuickStart/bin/Debug/net10.0-windows/LightningStart.exe
+src/LightningStart/bin/Debug/net10.0-windows/LightningStart.exe
 ```
 
 ## 发布
@@ -81,12 +80,12 @@ powershell -ExecutionPolicy Bypass -File tools\publish.ps1 -FrameworkDependent
 手动发布命令（PowerShell）：
 
 ```powershell
-dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-contained true `
+dotnet publish src/LightningStart/LightningStart.csproj -c Release -r win-x64 --self-contained true `
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
   -p:EnableCompressionInSingleFile=true -p:PublishTrimmed=false -o dist\manual
 ```
 
-发布前请先退出正在运行的 `LightningStart.exe` / 旧版 `QuickStart.exe`，否则文件可能被占用。
+发布前请先退出正在运行的 `LightningStart.exe`，否则文件可能被占用。
 
 ## 安装与升级
 
@@ -104,19 +103,7 @@ dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-con
 
 1. 托盘右键 →“退出 闪电启动”。
 2. 用新版本文件替换旧版本 exe（或解压到新目录）。
-3. 启动新版本。配置会自动沿用；旧的 `QuickStart` 配置会在首次启动时迁移到 `LightningStart` 目录。
-
-### 从旧版 QuickStart 迁移
-
-新版把发布身份统一为 `LightningStart`，并自动处理旧数据：
-
-- 若 `%AppData%\LightningStart\config.json` 不存在，而 `%AppData%\QuickStart\config.json` 存在，
-  首次启动会把旧配置复制到新目录；旧文件保留作备份。
-- 旧的 `QuickStart` 开机自启注册表值会被移除；如果配置中开启了自启，会改为写入
-  `LightningStart` 值，并指向当前 exe。
-- 旧图标缓存不会复用，新版本会重新提取一次图标。
-- 新版本与旧版使用不同的单实例名，升级前请退出旧版进程，避免同时驻留托盘。
-- 成功迁移的旧用户不会被当作首次运行，因此不会弹出首启气泡。
+3. 启动新版本，现有配置会自动沿用。
 
 ### 卸载
 
@@ -149,7 +136,6 @@ dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-con
 - 配置：`%AppData%\LightningStart\config.json`
 - 图标缓存：`%LocalAppData%\LightningStart\icons\`
 - 崩溃日志：`%LocalAppData%\LightningStart\logs\crash-YYYYMMDD.log`
-- 旧版配置备份：`%AppData%\QuickStart\config.json`
 - 配置损坏时会自动备份为 `config.json.bad` 并回退到默认配置
 
 日志只在发生未处理异常时写入，不会持续增长。
@@ -167,9 +153,6 @@ Windows 11 默认会折叠新图标。打开“设置 → 个性化 → 任务�
 
 **开机没有自动启动**
 检查“系统设置 → 行为”中的开关，以及 Windows“设置 → 应用 → 启动”是否禁用了本程序。更换 exe 路径后重新启动一次程序，自启命令会自动更新到新路径。
-
-**升级后像是配置丢了**
-新版使用 `%AppData%\LightningStart\config.json`。如果首次启动时新配置已存在，迁移不会覆盖它；请检查是否手动创建过该文件。旧文件仍在 `%AppData%\QuickStart\config.json` 作为备份。
 
 **程序异常退出**
 查看 `%LocalAppData%\LightningStart\logs\` 下最新的 `crash-*.log`，其中包含版本、时间和异常堆栈。
@@ -207,8 +190,8 @@ Windows 11 默认会折叠新图标。打开“设置 → 个性化 → 任务�
 ## 目录结构
 
 ```text
-QuickStart.sln
-src/QuickStart/
+LightningStart.sln
+src/LightningStart/
   App.xaml / App.xaml.cs          应用入口、单实例、托盘与面板协调
   Views/MainWindow.*              主窗口（应用列表 + 系统设置）
   Views/FlyoutWindow.*            托盘悬浮面板
@@ -219,7 +202,7 @@ src/QuickStart/
   Services/ConfigStore.cs         JSON 配置读写与默认条目
   Services/AutoStart.cs           开机自启注册表
   Services/CrashLogger.cs         未处理异常日志
-  Infrastructure/AppPaths.cs      配置、缓存、日志路径与旧配置迁移
+  Infrastructure/AppPaths.cs      配置、缓存、日志路径
   Interop/                        Win32 / Shell P/Invoke
   Styles/Theme.xaml               颜色、按钮、输入框、Tab 样式
 tools/generate-icon.ps1           重新生成 Assets/app.ico

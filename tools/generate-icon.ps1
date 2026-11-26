@@ -1,5 +1,5 @@
 param(
-    [string]$OutputPath = (Join-Path $PSScriptRoot '..\src\QuickStart\Assets\app.ico')
+    [string]$OutputPath = (Join-Path $PSScriptRoot '..\src\LightningStart\Assets\app.ico')
 )
 
 $ErrorActionPreference = 'Stop'
