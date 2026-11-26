@@ -11,8 +11,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <Version>0.1.0</Version>
-    <Product>QuickStart</Product>
-    <AssemblyTitle>QuickStart 快捷启动</AssemblyTitle>
+    <Product>闪电启动</Product>
+    <AssemblyTitle>闪电启动</AssemblyTitle>
     <Description>轻量级 Windows 托盘快捷启动器</Description>
   </PropertyGroup>
 

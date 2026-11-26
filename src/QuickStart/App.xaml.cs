@@ -75,7 +75,7 @@ public partial class App : Application
         {
             MessageBox.Show(
                 "无法创建托盘图标：" + ex.Message,
-                "QuickStart",
+                "闪电启动",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
         }

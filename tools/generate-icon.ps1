@@ -37,33 +37,28 @@ foreach ($size in $sizes) {
     $rect = [System.Drawing.Rectangle]::new(0, 0, $size, $size)
     $brush = [System.Drawing.Drawing2D.LinearGradientBrush]::new(
         $rect,
-        [System.Drawing.Color]::FromArgb(255, 82, 104, 238),
-        [System.Drawing.Color]::FromArgb(255, 126, 94, 255),
+        [System.Drawing.Color]::FromArgb(255, 29, 78, 216),
+        [System.Drawing.Color]::FromArgb(255, 59, 130, 246),
         45.0)
     $graphics.FillPath($brush, $bgPath)
     $brush.Dispose()
     $bgPath.Dispose()
 
-    $pad = [Math]::Max(2, [int]($size * 0.26))
-    $gap = [Math]::Max(1, [int]($size * 0.09))
-    $cell = [int][Math]::Floor(($size - 2 * $pad - $gap) / 2)
-    if ($cell -lt 2) { $cell = 2 }
-    $cellRadius = [Math]::Max(1, [int]($cell * 0.30))
-
+    # White lightning bolt: quick launch mark.
     $white = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(255, 255, 255, 255))
-    $positions = @(
-        @($pad, $pad),
-        @(($pad + $cell + $gap), $pad),
-        @($pad, ($pad + $cell + $gap)),
-        @(($pad + $cell + $gap), ($pad + $cell + $gap))
+    $bolt = [System.Drawing.Drawing2D.GraphicsPath]::new()
+    $boltPoints = [System.Drawing.PointF[]]@(
+        [System.Drawing.PointF]::new(0.57 * $size, 0.08 * $size),
+        [System.Drawing.PointF]::new(0.28 * $size, 0.55 * $size),
+        [System.Drawing.PointF]::new(0.46 * $size, 0.55 * $size),
+        [System.Drawing.PointF]::new(0.38 * $size, 0.92 * $size),
+        [System.Drawing.PointF]::new(0.72 * $size, 0.42 * $size),
+        [System.Drawing.PointF]::new(0.52 * $size, 0.42 * $size)
     )
+    $bolt.AddPolygon($boltPoints)
+    $graphics.FillPath($white, $bolt)
 
-    foreach ($pos in $positions) {
-        $cellPath = New-RoundedPath -x ([int]$pos[0]) -y ([int]$pos[1]) -w $cell -h $cell -r $cellRadius
-        $graphics.FillPath($white, $cellPath)
-        $cellPath.Dispose()
-    }
-
+    $bolt.Dispose()
     $white.Dispose()
     $graphics.Dispose()
     $images.Add($bmp)

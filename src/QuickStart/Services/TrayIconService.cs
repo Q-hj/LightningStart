@@ -155,7 +155,7 @@ internal sealed class TrayIconService : IDisposable
         {
             NativeMethods.AppendMenu(menu, NativeMethods.MF_STRING, 1, "打开设置");
             NativeMethods.AppendMenu(menu, NativeMethods.MF_SEPARATOR, 0, null);
-            NativeMethods.AppendMenu(menu, NativeMethods.MF_STRING, 2, "退出 QuickStart");
+            NativeMethods.AppendMenu(menu, NativeMethods.MF_STRING, 2, "退出 闪电启动");
 
             NativeMethods.GetCursorPos(out var point);
             NativeMethods.SetForegroundWindow(_source.Handle);
