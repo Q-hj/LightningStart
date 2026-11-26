@@ -50,10 +50,10 @@ internal sealed class TrayIconService : IDisposable
             cbSize = (uint)Marshal.SizeOf<NativeMethods.NOTIFYICONDATA>(),
             hWnd = _source.Handle,
             uID = IconId,
-            uFlags = NativeMethods.NIF_MESSAGE | NativeMethods.NIF_ICON | NativeMethods.NIF_TIP | NativeMethods.NIF_SHOWTIP,
+            uFlags = NativeMethods.NIF_MESSAGE | NativeMethods.NIF_ICON,
             uCallbackMessage = (uint)_callbackMessage,
             hIcon = _smallIcon,
-            szTip = "QuickStart 快捷启动（右键打开设置）",
+            szTip = string.Empty,
             szInfo = string.Empty,
             szInfoTitle = string.Empty
         };

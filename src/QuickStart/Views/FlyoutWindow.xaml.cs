@@ -1,7 +1,10 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
 using QuickStart.Interop;
 using QuickStart.Models;
@@ -18,6 +21,10 @@ public partial class FlyoutWindow : Window
     private NativeMethods.POINT _hotspot;
     private DateTime? _outsideSince;
     private bool _autoHide = true;
+    private bool _hasCustomPosition;
+    private int _customLeft;
+    private int _customTop;
+    private bool _pointerEnteredPanel;
 
     public event EventHandler? MainViewRequested;
 
@@ -66,12 +73,13 @@ public partial class FlyoutWindow : Window
         {
             NativeMethods.GetCursorPos(out _hotspot);
             _outsideSince = null;
+            _pointerEnteredPanel = false;
 
             UpdateMetrics();
             Opacity = 0;
             Show();
             UpdateLayout();
-            PositionPanel(_hotspot);
+            RepositionPanel();
             Opacity = 1;
         }
 
@@ -109,7 +117,7 @@ public partial class FlyoutWindow : Window
             return;
 
         UpdateLayout();
-        PositionPanel(_hotspot);
+        RepositionPanel();
     }
 
     private double CalculateWidth()
@@ -143,14 +151,22 @@ public partial class FlyoutWindow : Window
         var nearTrayIcon = Math.Abs(point.X - _hotspot.X) <= 48 &&
                            Math.Abs(point.Y - _hotspot.Y) <= 48;
 
-        if (insidePanel || nearTrayIcon)
+        if (insidePanel)
+        {
+            _pointerEnteredPanel = true;
+            _outsideSince = null;
+            return;
+        }
+
+        if (nearTrayIcon)
         {
             _outsideSince = null;
             return;
         }
 
         _outsideSince ??= DateTime.UtcNow;
-        if ((DateTime.UtcNow - _outsideSince.Value).TotalMilliseconds > 350)
+        var graceMs = _hasCustomPosition && !_pointerEnteredPanel ? 2500 : 350;
+        if ((DateTime.UtcNow - _outsideSince.Value).TotalMilliseconds > graceMs)
             HidePanel();
     }
 
@@ -189,8 +205,14 @@ public partial class FlyoutWindow : Window
         var workArea = monitorInfo.rcWork;
         var monitorArea = monitorInfo.rcMonitor;
 
-        var x = anchor.X - width / 2;
-        x = Math.Clamp(x, workArea.Left + 8, Math.Max(workArea.Left + 8, workArea.Right - width - 8));
+        // Transparent shadow margin around the visible card (matches the root
+        // Grid margin in XAML), converted to physical pixels.
+        var shadowMarginPx = (int)Math.Round(12 * scale);
+
+        // Slight left bias relative to the pointer for top/bottom taskbars.
+        const int horizontalBias = 12;
+        var x = anchor.X - width / 2 - horizontalBias;
+        x = Math.Clamp(x, workArea.Left, Math.Max(workArea.Left, workArea.Right - width - 8));
 
         // Detect a vertical taskbar (taskbar docked left/right). In that case the
         // tray icon lives on the side edge, so a flyout above the pointer looks
@@ -201,6 +223,13 @@ public partial class FlyoutWindow : Window
         int y;
         if (onLeftTaskbar || onRightTaskbar)
         {
+            // Keep a small visible gap to the taskbar; the window's transparent
+            // shadow margin extends into the taskbar strip.
+            var taskbarGapPx = (int)Math.Round(3 * scale);
+            x = onLeftTaskbar
+                ? workArea.Left + taskbarGapPx - shadowMarginPx
+                : workArea.Right - taskbarGapPx + shadowMarginPx - width;
+
             y = anchor.Y - height / 2;
             y = Math.Clamp(
                 y,
@@ -236,6 +265,119 @@ public partial class FlyoutWindow : Window
             NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
     }
 
+    private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ButtonState != MouseButtonState.Pressed)
+            return;
+
+        if (e.OriginalSource is DependencyObject source && FindAncestor<ButtonBase>(source) is not null)
+            return;
+
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero)
+            return;
+
+        if (!NativeMethods.GetWindowRect(handle, out var before))
+            return;
+
+        try
+        {
+            DragMove();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        if (!NativeMethods.GetWindowRect(handle, out var after))
+            return;
+
+        if (after.Left == before.Left && after.Top == before.Top)
+            return;
+
+        // Session-only custom position; never persisted to config.
+        _customLeft = after.Left;
+        _customTop = after.Top;
+        _hasCustomPosition = true;
+        _pointerEnteredPanel = true;
+    }
+
+    private void RepositionPanel()
+    {
+        if (_hasCustomPosition)
+            PositionPanelAtStoredLocation();
+        else
+            PositionPanel(_hotspot);
+    }
+
+    private void PositionPanelAtStoredLocation()
+    {
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == IntPtr.Zero)
+            return;
+
+        var stored = new NativeMethods.POINT { X = _customLeft, Y = _customTop };
+        var monitor = NativeMethods.MonitorFromPoint(stored, NativeMethods.MONITOR_DEFAULTTONEAREST);
+        var monitorInfo = new NativeMethods.MONITORINFO
+        {
+            cbSize = Marshal.SizeOf<NativeMethods.MONITORINFO>()
+        };
+
+        if (!NativeMethods.GetMonitorInfo(monitor, ref monitorInfo))
+            return;
+
+        var dpi = 96u;
+        if (NativeMethods.GetDpiForMonitor(monitor, NativeMethods.MDT_EFFECTIVE_DPI, out var dpiX, out _) != 0 || dpiX == 0)
+        {
+            var windowDpi = NativeMethods.GetDpiForWindow(handle);
+            if (windowDpi != 0)
+                dpi = windowDpi;
+        }
+        else
+        {
+            dpi = dpiX;
+        }
+
+        var scale = dpi / 96.0;
+        var width = (int)Math.Ceiling(ActualWidth * scale);
+        var height = (int)Math.Ceiling(ActualHeight * scale);
+        var workArea = monitorInfo.rcWork;
+
+        var x = Math.Clamp(_customLeft, workArea.Left, Math.Max(workArea.Left, workArea.Right - width));
+        var y = Math.Clamp(_customTop, workArea.Top, Math.Max(workArea.Top, workArea.Bottom - height));
+
+        NativeMethods.SetWindowPos(
+            handle,
+            IntPtr.Zero,
+            x,
+            y,
+            0,
+            0,
+            NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE);
+    }
+
+    private static T? FindAncestor<T>(DependencyObject? node) where T : DependencyObject
+    {
+        while (node is not null)
+        {
+            if (node is T typed)
+                return typed;
+
+            node = GetParent(node);
+        }
+
+        return null;
+    }
+
+    private static DependencyObject? GetParent(DependencyObject node)
+    {
+        if (node is Visual)
+            return VisualTreeHelper.GetParent(node);
+        if (node is FrameworkContentElement contentElement)
+            return contentElement.Parent;
+        return LogicalTreeHelper.GetParent(node);
+    }
+
     private void ShowError(string message)
     {
         ErrorText.Text = message;
@@ -250,7 +392,7 @@ public partial class FlyoutWindow : Window
                 return;
 
             UpdateLayout();
-            PositionPanel(_hotspot);
+            RepositionPanel();
         }, DispatcherPriority.Loaded);
     }
 
@@ -268,7 +410,7 @@ public partial class FlyoutWindow : Window
                 return;
 
             UpdateLayout();
-            PositionPanel(_hotspot);
+            RepositionPanel();
         }, DispatcherPriority.Loaded);
     }
 
