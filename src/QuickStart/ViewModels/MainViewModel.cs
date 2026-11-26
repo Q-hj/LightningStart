@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Data;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using QuickStart.Infrastructure;
@@ -41,6 +42,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             Entries.Add(entry);
         }
 
+        PanelEntries = new ListCollectionView(Entries)
+        {
+            Filter = item => item is AppEntry entry && !entry.Hidden
+        };
+        Entries.CollectionChanged += (_, _) => OnPropertyChanged(nameof(PanelEntryCount));
+
         AddCommand = new RelayCommand(AddFromDialog);
         RemoveCommand = new RelayCommand(RemoveSelected, () => SelectedEntry is not null);
         MoveUpCommand = new RelayCommand(
@@ -55,6 +62,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         BrowseWorkingDirectoryCommand = new RelayCommand(BrowseWorkingDirectory, () => SelectedEntry is not null);
         BrowseIconCommand = new RelayCommand(BrowseIcon, () => SelectedEntry is not null);
         OpenConfigFolderCommand = new RelayCommand(OpenConfigFolder);
+        ToggleHiddenCommand = new RelayCommand<AppEntry>(ToggleHidden);
+        DeleteEntryCommand = new RelayCommand<AppEntry>(DeleteEntry);
 
         _saveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(600) };
         _saveTimer.Tick += (_, _) =>
@@ -83,6 +92,11 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<AppEntry> Entries { get; } = new();
 
+    /// <summary>Filtered view used by the tray panel; hidden entries are excluded.</summary>
+    public ListCollectionView PanelEntries { get; }
+
+    public int PanelEntryCount => PanelEntries.Count;
+
     public BehaviorConfig Behavior { get; }
 
     public bool IsFirstRun { get; }
@@ -99,6 +113,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public RelayCommand BrowseWorkingDirectoryCommand { get; }
     public RelayCommand BrowseIconCommand { get; }
     public RelayCommand OpenConfigFolderCommand { get; }
+    public RelayCommand<AppEntry> ToggleHiddenCommand { get; }
+    public RelayCommand<AppEntry> DeleteEntryCommand { get; }
 
     public AppEntry? SelectedEntry
     {
@@ -202,20 +218,68 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
     private void RemoveSelected()
     {
-        if (SelectedEntry is not { } entry)
+        if (SelectedEntry is { } entry)
+            RemoveEntry(entry);
+    }
+
+    private void RemoveEntry(AppEntry entry)
+    {
+        var index = Entries.IndexOf(entry);
+        if (index < 0)
             return;
 
-        var index = Entries.IndexOf(entry);
+        var wasSelected = ReferenceEquals(SelectedEntry, entry);
         Detach(entry);
         Entries.Remove(entry);
 
-        SelectedEntry = Entries.Count == 0
-            ? null
-            : Entries[Math.Min(index, Entries.Count - 1)];
+        if (wasSelected)
+        {
+            SelectedEntry = Entries.Count == 0
+                ? null
+                : Entries[Math.Min(index, Entries.Count - 1)];
+        }
 
         UpdateCommandStates();
         SaveNow();
         SetStatus($"已移除 {entry.Name}");
+    }
+
+    private void ToggleHidden(AppEntry? entry)
+    {
+        if (entry is null)
+            return;
+
+        entry.Hidden = !entry.Hidden;
+        SaveNow();
+
+        SetStatus(entry.Hidden
+            ? $"已隐藏 {entry.Name}（托盘面板中不再显示）"
+            : $"已显示 {entry.Name}");
+    }
+
+    private void DeleteEntry(AppEntry? entry)
+    {
+        if (entry is not null)
+            RemoveEntry(entry);
+    }
+
+    public void MoveEntryTo(AppEntry entry, int targetIndex)
+    {
+        var oldIndex = Entries.IndexOf(entry);
+        if (oldIndex < 0)
+            return;
+
+        if (targetIndex > oldIndex)
+            targetIndex--;
+
+        targetIndex = Math.Clamp(targetIndex, 0, Entries.Count - 1);
+        if (targetIndex == oldIndex)
+            return;
+
+        Entries.Move(oldIndex, targetIndex);
+        SelectedEntry = entry;
+        UpdateCommandStates();
+        SaveNow();
     }
 
     private void MoveSelected(int delta)
@@ -358,6 +422,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             entry.IsTargetMissing = !entry.TargetExists();
             _dirtyIcons.Add(entry);
+        }
+
+        if (e.PropertyName == nameof(AppEntry.Hidden))
+        {
+            PanelEntries.Refresh();
+            OnPropertyChanged(nameof(PanelEntryCount));
         }
 
         SaveDebounced();

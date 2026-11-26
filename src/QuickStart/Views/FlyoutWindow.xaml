@@ -46,7 +46,7 @@
                     Padding="6,0"
                     Margin="8,0,0,0"
                     VerticalAlignment="Center">
-              <TextBlock Text="{Binding Entries.Count}" FontSize="10" Foreground="{StaticResource AccentBrush}" />
+              <TextBlock Text="{Binding PanelEntryCount}" FontSize="10" Foreground="{StaticResource AccentBrush}" />
             </Border>
           </StackPanel>
           <Button Content="打开主视图"
@@ -60,7 +60,7 @@
           <ScrollViewer MaxHeight="432"
                         VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl ItemsSource="{Binding Entries}">
+            <ItemsControl ItemsSource="{Binding PanelEntries}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <UniformGrid Columns="{Binding Behavior.Columns}" />
@@ -120,7 +120,7 @@
               <Style TargetType="StackPanel">
                 <Setter Property="Visibility" Value="Collapsed" />
                 <Style.Triggers>
-                  <DataTrigger Binding="{Binding Entries.Count}" Value="0">
+                  <DataTrigger Binding="{Binding PanelEntryCount}" Value="0">
                     <Setter Property="Visibility" Value="Visible" />
                   </DataTrigger>
                 </Style.Triggers>

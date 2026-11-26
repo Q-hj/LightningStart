@@ -13,6 +13,7 @@ public sealed class AppEntry : ObservableObject
     private string _arguments = string.Empty;
     private string _workingDirectory = string.Empty;
     private bool _runAsAdmin;
+    private bool _hidden;
     private string? _iconPath;
     private ImageSource? _icon;
     private bool _isTargetMissing;
@@ -52,6 +53,13 @@ public sealed class AppEntry : ObservableObject
     {
         get => _runAsAdmin;
         set => SetProperty(ref _runAsAdmin, value);
+    }
+
+    /// <summary>Hidden entries stay in the configuration list but are not shown in the tray panel.</summary>
+    public bool Hidden
+    {
+        get => _hidden;
+        set => SetProperty(ref _hidden, value);
     }
 
     /// <summary>Optional icon override (image file, exe or shortcut).</summary>
