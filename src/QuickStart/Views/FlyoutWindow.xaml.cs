@@ -5,6 +5,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using QuickStart.Interop;
 using QuickStart.Models;
@@ -25,6 +27,8 @@ public partial class FlyoutWindow : Window
     private int _customLeft;
     private int _customTop;
     private bool _pointerEnteredPanel;
+    private readonly RadialGradientBrush _gridMask;
+    private bool _gridVisible;
 
     public event EventHandler? MainViewRequested;
 
@@ -36,6 +40,22 @@ public partial class FlyoutWindow : Window
 
         DataContext = viewModel;
         Width = CalculateWidth();
+
+        _gridMask = new RadialGradientBrush
+        {
+            MappingMode = BrushMappingMode.Absolute,
+            RadiusX = 110,
+            RadiusY = 80,
+            GradientStops = new GradientStopCollection
+            {
+                new GradientStop(Color.FromArgb(255, 255, 255, 255), 0),
+                new GradientStop(Color.FromArgb(175, 255, 255, 255), 0.4),
+                new GradientStop(Color.FromArgb(45, 255, 255, 255), 0.75),
+                new GradientStop(Color.FromArgb(0, 255, 255, 255), 1)
+            }
+        };
+        GridLinesCanvas.OpacityMask = _gridMask;
+        PanelItems.SizeChanged += (_, _) => RebuildGridLines();
 
         _watchTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
@@ -74,13 +94,26 @@ public partial class FlyoutWindow : Window
             NativeMethods.GetCursorPos(out _hotspot);
             _outsideSince = null;
             _pointerEnteredPanel = false;
+            _gridVisible = false;
+            GridLinesCanvas.BeginAnimation(OpacityProperty, null);
+            GridLinesCanvas.Opacity = 0;
 
             UpdateMetrics();
             Opacity = 0;
             Show();
             UpdateLayout();
             RepositionPanel();
+            RebuildGridLines();
             Opacity = 1;
+
+            Dispatcher.InvokeAsync(() =>
+            {
+                if (!IsVisible || !BodyRoot.IsMouseOver)
+                    return;
+
+                UpdateGridMask();
+                ShowGridLines();
+            }, DispatcherPriority.Input);
         }
 
         if (_autoHide)
@@ -95,6 +128,9 @@ public partial class FlyoutWindow : Window
         _errorTimer.Stop();
         _outsideSince = null;
         HideError();
+        _gridVisible = false;
+        GridLinesCanvas.BeginAnimation(OpacityProperty, null);
+        GridLinesCanvas.Opacity = 0;
 
         if (IsVisible)
             Hide();
@@ -118,6 +154,10 @@ public partial class FlyoutWindow : Window
 
         UpdateLayout();
         RepositionPanel();
+        RebuildGridLines();
+
+        if (BodyRoot.IsMouseOver)
+            UpdateGridMask();
     }
 
     private double CalculateWidth()
@@ -376,6 +416,105 @@ public partial class FlyoutWindow : Window
         if (node is FrameworkContentElement contentElement)
             return contentElement.Parent;
         return LogicalTreeHelper.GetParent(node);
+    }
+
+    private void RebuildGridLines()
+    {
+        GridLinesCanvas.Children.Clear();
+
+        var count = _viewModel.PanelEntryCount;
+        var columns = _viewModel.Behavior.Columns;
+        if (count <= 0 || columns <= 0)
+            return;
+
+        var width = PanelItems.ActualWidth;
+        var height = PanelItems.ActualHeight;
+        if (width <= 0 || height <= 0)
+            return;
+
+        var rows = (int)Math.Ceiling((double)count / columns);
+        var cellWidth = width / columns;
+        var cellHeight = height / rows;
+        var stroke = new SolidColorBrush(Color.FromRgb(0x60, 0xA5, 0xFA));
+        stroke.Freeze();
+
+        for (var i = 1; i < columns; i++)
+        {
+            var x = cellWidth * i;
+            GridLinesCanvas.Children.Add(new Line
+            {
+                X1 = x,
+                Y1 = 0,
+                X2 = x,
+                Y2 = height,
+                Stroke = stroke,
+                StrokeThickness = 1,
+                SnapsToDevicePixels = true
+            });
+        }
+
+        for (var j = 1; j < rows; j++)
+        {
+            var y = cellHeight * j;
+            GridLinesCanvas.Children.Add(new Line
+            {
+                X1 = 0,
+                Y1 = y,
+                X2 = width,
+                Y2 = y,
+                Stroke = stroke,
+                StrokeThickness = 1,
+                SnapsToDevicePixels = true
+            });
+        }
+    }
+
+    private void Body_MouseEnter(object sender, MouseEventArgs e)
+    {
+        UpdateGridMask();
+        ShowGridLines();
+    }
+
+    private void Body_MouseLeave(object sender, MouseEventArgs e)
+    {
+        HideGridLines();
+    }
+
+    private void Body_MouseMove(object sender, MouseEventArgs e)
+    {
+        UpdateGridMask();
+
+        if (!_gridVisible)
+            ShowGridLines();
+    }
+
+    private void UpdateGridMask()
+    {
+        var position = Mouse.GetPosition(GridLinesCanvas);
+        _gridMask.Center = position;
+        _gridMask.GradientOrigin = position;
+    }
+
+    private void ShowGridLines()
+    {
+        _gridVisible = true;
+        GridLinesCanvas.BeginAnimation(
+            OpacityProperty,
+            new DoubleAnimation(1, TimeSpan.FromMilliseconds(140))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            });
+    }
+
+    private void HideGridLines()
+    {
+        _gridVisible = false;
+        GridLinesCanvas.BeginAnimation(
+            OpacityProperty,
+            new DoubleAnimation(0, TimeSpan.FromMilliseconds(220))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            });
     }
 
     private void ShowError(string message)

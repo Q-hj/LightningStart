@@ -1,6 +1,6 @@
 # 闪电启动
 
-一个轻量的 Windows 桌面快捷启动器，拥有两种形态：
+一个轻量的 Windows 桌面快捷启动器，无毒无害，轻量便携。拥有两种形态：
 
 > 程序显示名为“闪电启动”，工程名与可执行文件仍沿用 QuickStart。
 
@@ -84,28 +84,28 @@ dotnet publish src/QuickStart/QuickStart.csproj -c Release -r win-x64 --self-con
 
 ## 技术实现
 
-| 模块 | 方案 |
-| --- | --- |
-| UI | WPF / .NET 10（`net10.0-windows`，PerMonitorV2 DPI） |
+| 模块     | 方案                                                                                                                                                      |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UI       | WPF / .NET 10（`net10.0-windows`，PerMonitorV2 DPI）                                                                                                      |
 | 托盘图标 | `Shell_NotifyIcon` + `NOTIFYICON_VERSION_4`，处理 `NIN_POPUPOPEN` / `NIN_POPUPCLOSE` / `NIN_SELECT`，并兼容传统 `WM_MOUSEMOVE` / `WM_MOUSELEAVE` 悬浮通知 |
-| 悬浮面板 | 无边框 + 透明分层窗口 + `WS_EX_NOACTIVATE` / `WS_EX_TOOLWINDOW`，不抢焦点 |
-| 面板定位 | `GetMonitorInfo` + `GetDpiForMonitor`，按物理像素 `SetWindowPos` 贴边 |
-| 自动隐藏 | 120ms 轮询光标位置，移出面板/托盘热区 350ms 后隐藏 |
-| 图标提取 | `IShellItemImageFactory`（128px）+ `SHGetFileInfo` 兜底，PNG 缓存 |
-| 图标线程 | 专用 STA 线程串行提取，规避并发 MTA 调用出现的 `E_PENDING` |
-| 启动程序 | `Process.Start` + `UseShellExecute`，可选 `runas` 提权 |
-| 单实例 | 命名 `Mutex` + 命名 `EventWaitHandle` |
-| 配置 | `System.Text.Json`，临时文件 + 覆盖写 |
-| 开机自启 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`，启动参数 `--tray` |
+| 悬浮面板 | 无边框 + 透明分层窗口 + `WS_EX_NOACTIVATE` / `WS_EX_TOOLWINDOW`，不抢焦点                                                                                 |
+| 面板定位 | `GetMonitorInfo` + `GetDpiForMonitor`，按物理像素 `SetWindowPos` 贴边                                                                                     |
+| 自动隐藏 | 120ms 轮询光标位置，移出面板/托盘热区 350ms 后隐藏                                                                                                        |
+| 图标提取 | `IShellItemImageFactory`（128px）+ `SHGetFileInfo` 兜底，PNG 缓存                                                                                         |
+| 图标线程 | 专用 STA 线程串行提取，规避并发 MTA 调用出现的 `E_PENDING`                                                                                                |
+| 启动程序 | `Process.Start` + `UseShellExecute`，可选 `runas` 提权                                                                                                    |
+| 单实例   | 命名 `Mutex` + 命名 `EventWaitHandle`                                                                                                                     |
+| 配置     | `System.Text.Json`，临时文件 + 覆盖写                                                                                                                     |
+| 开机自启 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`，启动参数 `--tray`                                                                                   |
 
 ## 开发参数
 
-| 参数 | 用途 |
-| --- | --- |
-| `--tray` | 开机自启参数：仅驻留托盘（普通启动已是该行为） |
-| `--settings` | 启动后直接打开配置窗口；若已有实例则唤醒其设置窗口 |
-| `--flyout` | 调试用：启动后直接显示快捷面板，并禁用自动隐藏 |
-| `--tray --flyout` | 只显示快捷面板，方便截图/调试 |
+| 参数              | 用途                                               |
+| ----------------- | -------------------------------------------------- |
+| `--tray`          | 开机自启参数：仅驻留托盘（普通启动已是该行为）     |
+| `--settings`      | 启动后直接打开配置窗口；若已有实例则唤醒其设置窗口 |
+| `--flyout`        | 调试用：启动后直接显示快捷面板，并禁用自动隐藏     |
+| `--tray --flyout` | 只显示快捷面板，方便截图/调试                      |
 
 ## 目录结构
 
