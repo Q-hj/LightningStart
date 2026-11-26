@@ -5,8 +5,6 @@
 - **配置窗口**：管理要出现在快捷菜单中的程序（添加、排序、编辑参数/图标）。
 - **托盘面板**：常驻系统托盘，悬浮或单击图标弹出小面板，单击程序图标即可启动。
 
-> 显示名：**闪电启动**；源码工程、命名空间、解决方案和可执行文件均统一为 `LightningStart`。
-
 ## 功能
 
 - 主窗口采用左侧导航，分为“应用列表”和“系统设置”两个页面
@@ -174,8 +172,8 @@ Windows 11 默认会折叠新图标。打开“设置 → 个性化 → 任务�
 | 启动程序 | `Process.Start` + `UseShellExecute`，可选 `runas` 提权                                                                                                    |
 | 单实例   | 命名 `Mutex` + 命名 `EventWaitHandle`（`LightningStart` 前缀）                                                                                            |
 | 配置     | `System.Text.Json`，临时文件 + 覆盖写                                                                                                                     |
-| 开机自启 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`，值名 `LightningStart`，启动参数 `--tray`                                                             |
-| 首启提示 | `Shell_NotifyIcon(NIM_MODIFY, NIF_INFO)` 托盘气泡                                                                                                        |
+| 开机自启 | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`，值名 `LightningStart`，启动参数 `--tray`                                                            |
+| 首启提示 | `Shell_NotifyIcon(NIM_MODIFY, NIF_INFO)` 托盘气泡                                                                                                         |
 | 异常日志 | `DispatcherUnhandledException` / `AppDomain.UnhandledException` / `TaskScheduler.UnobservedTaskException`                                                 |
 
 ## 开发参数
@@ -222,7 +220,3 @@ LICENSE                           MIT 许可证
 ## 许可证
 
 本项目使用 [MIT License](LICENSE)。
-
-## 仓库
-
-<https://github.com/Q-hj/quick-star>
