@@ -30,6 +30,10 @@ public partial class FlyoutWindow : Window
     private readonly RadialGradientBrush _gridMask;
     private bool _gridVisible;
 
+    private const int WatchIntervalMs = 80;
+    private const int HideDelayMs = 150;
+    private const int CustomPositionTravelGraceMs = 2500;
+
     public event EventHandler? MainViewRequested;
 
     public FlyoutWindow(MainViewModel viewModel)
@@ -59,7 +63,7 @@ public partial class FlyoutWindow : Window
 
         _watchTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromMilliseconds(120)
+            Interval = TimeSpan.FromMilliseconds(WatchIntervalMs)
         };
         _watchTimer.Tick += (_, _) => WatchCursor();
 
@@ -205,7 +209,7 @@ public partial class FlyoutWindow : Window
         }
 
         _outsideSince ??= DateTime.UtcNow;
-        var graceMs = _hasCustomPosition && !_pointerEnteredPanel ? 2500 : 350;
+        var graceMs = _hasCustomPosition && !_pointerEnteredPanel ? CustomPositionTravelGraceMs : HideDelayMs;
         if ((DateTime.UtcNow - _outsideSince.Value).TotalMilliseconds > graceMs)
             HidePanel();
     }
